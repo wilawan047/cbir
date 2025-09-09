@@ -5302,7 +5302,5 @@ def create_house_views_table():
     except Exception as e:
         return f"Error creating house_views table: {str(e)}"
 
-if __name__ == '__main__':
-    # Call the font setup function inside the main block
-    setup_thai_font()
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
