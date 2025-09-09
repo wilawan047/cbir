@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit House</title>
+    
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        // Verify jQuery and Select2 are loaded
+        window.addEventListener('load', function() {
+            if (window.jQuery) {
+                console.log('jQuery is loaded');
+                if ($.fn.select2) {
+                    console.log('Select2 is loaded');
+                    initializeSelect2();
+                } else {
+                    console.error('Select2 is not loaded');
+                }
+            } else {
+                console.error('jQuery is not loaded');
+            }
+        });
+
+        function initializeSelect2() {
+            // Initialize Select2 elements
+            $('#t_id').select2({
+                placeholder: "เลือกประเภทบ้าน...",
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#p_id').select2({
+                placeholder: "เลือกโครงการ...",
+                allowClear: true,
+                width: '100%'
+            });
+            
+            // Corrected ID to match the select element's name
+            $('#f_id').select2({ 
+                placeholder: "เลือกคุณลักษณะบ้าน...",
+                allowClear: true,
+                width: '100%',
+                multiple: false
+            });
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        /* Your other styles here */
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 antialiased">
+    <div class="flex min-h-screen">
+        {% include '_admin_sidebar.html' %}
+
+        <main class="flex-1 p-8">
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <ul class="mb-6">
+                    {% for category, message in messages %}
+                    <li class="px-4 py-2 mb-2 rounded-lg {{ 'bg-red-100 text-red-700' if category == 'error' else 'bg-green-100 text-green-700' }}">
+                        {{ message }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-1">แก้ไขบ้าน</h1>
+                    <div class="text-gray-500 text-base">อัปเดตข้อมูลบ้าน</div>
+                </div>
+                <a href="{{ url_for('admin_houses') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white-200 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    กลับหน้าจัดการบ้าน
+                </a>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                <form method="POST" action="{{ url_for('admin_edit_house', id=house['h_id']) }}" class="space-y-4" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="h_title" class="block text-sm font-medium text-gray-700 mb-1">ชื่อบ้าน</label>
+                                <input type="text" id="h_title" name="h_title" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['h_title'] }}"
+                                    placeholder="กรอกชื่อบ้าน">
+                            </div>
+
+                            <div>
+                                <label for="h_description" class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                                <textarea id="h_description" name="h_description" rows="4" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกคำอธิบายบ้าน">{{ house['h_description'] if house['h_description'] is not none else '' }}</textarea>
+                            </div>
+
+                            <div>
+                                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">ราคา</label>
+                                <input type="number" id="price" name="price" min="0" step="0.01" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['price'] }}"
+                                    placeholder="กรอกราคาบ้าน">
+                            </div>
+
+                            <div>
+                                <label for="t_id" class="block text-sm font-medium text-gray-700 mb-1">ประเภทบ้าน</label>
+                                <select id="t_id" name="t_id" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">เลือกประเภทบ้าน</option>
+                                    {% for type in house_types %}
+                                        <option value="{{ type.t_id }}" {% if type.t_id == house['t_id'] %}selected{% endif %}>{{ type.t_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="f_id" class="block text-sm font-medium text-gray-700 mb-1">ลักษณะบ้าน</label>
+                                <select id="f_id" name="f_id" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">เลือกคุณลักษณะบ้าน</option>
+                                    {% for feature in house_features %}
+                                        <option value="{{ feature.f_id }}" {% if feature.f_id == house['f_id'] %}selected{% endif %}>{{ feature.f_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="p_id" class="block text-sm font-medium text-gray-700 mb-1">โครงการ</label>
+                                <select id="p_id" name="p_id" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">เลือกโครงการ</option>
+                                    {% for project in projects %}
+                                        <option value="{{ project.p_id }}" {% if project.p_id == house['p_id'] %}selected{% endif %}>{{ project.p_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="latitude" class="block text-sm font-medium text-gray-700 mb-1">ละติจูด</label>
+                                <input type="number" id="latitude" name="latitude" step="any"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['latitude'] if house['latitude'] is not none else '' }}"
+                                    placeholder="กรอกละติจูด">
+                            </div>
+
+                            <div>
+                                <label for="longitude" class="block text-sm font-medium text-gray-700 mb-1">ลองจิจูด</label>
+                                <input type="number" id="longitude" name="longitude" step="any"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['longitude'] if house['longitude'] is not none else '' }}"
+                                    placeholder="กรอกลองจิจูด">
+                            </div>
+
+                            <div>
+                                <label for="bedrooms" class="block text-sm font-medium text-gray-700 mb-1">จำนวนห้องนอน</label>
+                                <input type="number" id="bedrooms" name="bedrooms" min="0"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['bedrooms'] if house['bedrooms'] is not none else '' }}"
+                                    placeholder="กรอกจำนวนห้องนอน">
+                            </div>
+
+                            <div>
+                                <label for="bathrooms" class="block text-sm font-medium text-gray-700 mb-1">จำนวนห้องน้ำ</label>
+                                <input type="number" id="bathrooms" name="bathrooms" min="0"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['bathrooms'] if house['bathrooms'] is not none else '' }}"
+                                    placeholder="กรอกจำนวนห้องน้ำ">
+                            </div>
+
+                            <div>
+                                <label for="living_area" class="block text-sm font-medium text-gray-700 mb-1">พื้นที่อาศัย</label>
+                                <input type="number" id="living_area" name="living_area" min="0" step="0.01"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['living_area'] if house['living_area'] is not none else '' }}"
+                                    placeholder="กรอกพื้นที่อาศัย">
+                            </div>
+
+                            <div>
+                                <label for="parking_space" class="block text-sm font-medium text-gray-700 mb-1">พื้นที่จอดรถ</label>
+                                <input type="number" id="parking_space" name="parking_space" min="0" step="0.01"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['parking_space'] if house['parking_space'] is not none else '' }}"
+                                    placeholder="กรอกพื้นที่จอดรถ">
+                            </div>
+
+                            <div>
+                                <label for="no_of_floors" class="block text-sm font-medium text-gray-700 mb-1">จำนวนชั้น</label>
+                                <input type="number" id="no_of_floors" name="no_of_floors" min="0" step="1"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    value="{{ house['no_of_floors'] if house['no_of_floors'] is not none else '' }}"
+                                    placeholder="กรอกจำนวนชั้น">
+                            </div>
+
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                <select id="status" name="status" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="available" {% if house['status'] == 'available' %}selected{% endif %}>พร้อมขาย</option>
+                                    <option value="inactive" {% if house['status'] == 'inactive' %}selected{% endif %}>ไม่พร้อมขาย</option>
+                                    <option value="sold" {% if house['status'] == 'sold' %}selected{% endif %}>ขายแล้ว</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">เพิ่มรูปภาพ</label>
+                                <label for="house_images" class="border-2 border-dashed border-blue-500 rounded-xl bg-blue-50 p-8 flex flex-col items-center justify-center transition hover:shadow-xl hover:bg-blue-100 cursor-pointer">
+                                    <svg class="w-12 h-12 text-blue-500 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span class="font-semibold text-blue-600">คลิกหรือลากรูปภาพที่นี่เพื่ออัปโหลด</span>
+                                    <span class="text-gray-500 text-sm">PNG, JPG, GIF ขนาดไม่เกิน 10MB คุณสามารถเลือกรูปภาพหลายๆ รูป</span>
+                                    <input type="file" id="house_images" name="house_images" multiple accept="image/*" class="hidden" onchange="previewMultipleImages(this)">
+                                </label>
+                                <div id="multipleImagePreview" class="flex flex-wrap gap-3 mt-4"></div>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold mb-2">รูปภาพปัจจุบัน</h3>
+                                <div class="relative">
+                                    <button type="button" onclick="scrollImages(-1)" class="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white shadow rounded-full p-2 text-blue-500 transition-all duration-200 flex items-center justify-center" style="margin-left: 2px;">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    
+                                    <div id="currentImages" class="flex overflow-x-auto space-x-4 p-2 hide-scrollbar min-h-[180px] items-center" style="scroll-behavior: smooth;">
+                                        {% if house_images %}
+                                            {% for img in house_images %}
+                                            {% set full_image_url = url_for('static', filename=img.image_url) %}
+                                            <div class="relative flex-shrink-0 group" data-image-id="{{ img.id }}" style="min-width: 160px;">
+                                                <div class="relative h-40 w-40">
+                                                    <img src="{{ full_image_url }}" 
+                                                         class="h-full w-full object-cover rounded-lg border-2 {% if img.is_main %}border-blue-500{% else %}border-gray-200{% endif %}"
+                                                         alt="House Image"
+                                                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/no-image.jpg') }}'">
+                                                    <div class="absolute top-0 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded-br-lg">
+                                                        {% if img.is_main %}Main{% else %}#{{ loop.index }}{% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="absolute inset-0 flex flex-col justify-between p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div class="flex justify-end">
+                                                        <button type="button" 
+                                                                class="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                                                onclick="event.stopPropagation(); deleteImage({{ img.id }});">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <div class="flex justify-center">
+                                                        <button type="button" 
+                                                                class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full hover:bg-blue-600 transition-colors {% if img.is_main %}bg-yellow-500 hover:bg-yellow-600{% endif %}"
+                                                                onclick="event.stopPropagation(); setAsMain({{ img.id }});">
+                                                            {% if img.is_main %}รูปหลัก{% else %}ตั้งเป็นรูปหลัก{% endif %}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                        <div class="text-center text-gray-500 py-8 w-full">
+                                            No images found. Please upload some images below.
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <button type="button" onclick="scrollImages(1)" class="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white shadow rounded-full p-2 text-blue-500 transition-all duration-200 flex items-center justify-center" style="margin-right: 2px;">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" id="submitButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                            อัปเดตบ้าน
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Function to set an image as main
+        function setAsMain(imageId) {
+            fetch(`/admin/set-main-image/{{ house.h_id }}/${imageId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // Reload the page to show the new main image
+                } else {
+                    flashMessage('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                flashMessage('Failed to set main image.', 'error');
+            });
+        }
+        
+        // Flash message utility function
+        function flashMessage(message, type = 'info') {
+            const flashContainer = document.createElement('div');
+            flashContainer.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${type === 'error' ? 'bg-red-100 border-l-4 border-red-500 text-red-700' : 'bg-blue-100 border-l-4 border-blue-500 text-blue-700'}`;
+            
+            // Create elements directly instead of using innerHTML with template literals
+            const flexDiv = document.createElement('div');
+            flexDiv.className = 'flex items-center';
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.className = 'mr-2';
+            messageSpan.textContent = message;
+            
+            const closeButton = document.createElement('button');
+            closeButton.className = 'text-gray-500 hover:text-gray-700';
+            closeButton.onclick = function() {
+                flashContainer.remove();
+            };
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('class', 'w-5 h-5');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke-linecap', 'round');
+            path.setAttribute('stroke-linejoin', 'round');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+            
+            svg.appendChild(path);
+            closeButton.appendChild(svg);
+            flexDiv.appendChild(messageSpan);
+            flexDiv.appendChild(closeButton);
+            flashContainer.appendChild(flexDiv);
+            
+            document.body.appendChild(flashContainer);
+            setTimeout(() => flashContainer.remove(), 5000);
+        }
+
+        // Function to delete an image
+        function deleteImage(imageId) {
+            if (!confirm('ยืนยันการลบรูปภาพนี้?')) return;
+            
+            const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                flashMessage('Authentication error. Please refresh the page and try again.', 'error');
+                return;
+            }
+
+            fetch(`/admin/delete-house-image/{{ house.h_id }}/${imageId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data?.success) {
+                    location.reload();
+                } else {
+                    const errorMsg = data?.message || 'Unknown error occurred';
+                    flashMessage('Error: ' + errorMsg, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                flashMessage('Failed to delete image. Please try again.', 'error');
+            });
+        }
+        
+        // ... (Your other JS functions for previewing new images and scrolling) ...
+        let selectedFiles = [];
+
+        function previewMultipleImages(input) {
+            const previewContainer = document.getElementById('multipleImagePreview');
+            previewContainer.innerHTML = '';
+            
+            if (!input.files || input.files.length === 0) {
+                return;
+            }
+            
+            selectedFiles = Array.from(input.files);
+            const previewRow = document.createElement('div');
+            previewRow.className = 'flex flex-wrap gap-3';
+            
+            selectedFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'relative group';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-24 h-24 object-cover rounded-lg border-2 border-gray-200 group-hover:border-blue-500 transition-colors';
+                    img.alt = 'Preview ' + (idx + 1);
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.className = 'absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600 focus:outline-none text-xs';
+                    removeBtn.title = 'Remove image';
+                    removeBtn.onclick = function(e) { 
+                        e.stopPropagation();
+                        removeImage(idx); 
+                    };
+                    
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(removeBtn);
+                    previewRow.appendChild(wrapper);
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            previewContainer.appendChild(previewRow);
+            updateInputFiles();
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            updateInputFiles();
+            // Re-render previews
+            const input = document.getElementById('house_images');
+            previewMultipleImages({ files: selectedFiles });
+        }
+
+        function updateInputFiles() {
+            // Create a new DataTransfer to update the input's files
+            const input = document.getElementById('house_images');
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            input.files = dt.files;
+        }
+
+        function scrollImages(direction) {
+            const container = document.getElementById('currentImages');
+            const scrollAmount = container.clientWidth * 0.8;
+            container.scrollBy({
+                left: scrollAmount * direction,
+                behavior: 'smooth'
+            });
+        }
+        
+        // This is a basic form validation that works for this form.
+        function validateForm() {
+            const project = document.getElementById('p_id').value;
+            const houseType = document.getElementById('t_id').value;
+            const price = document.getElementById('price').value;
+            const description = document.getElementById('description').value;
+            const title = document.getElementById('h_title').value;
+            const feature = document.getElementById('f_id').value;
+
+            if (!project || !houseType || !price || !description || !title || !feature) {
+                alert('Please fill in all required fields.');
+                return false;
+            }
+
+            if (price <= 0) {
+                alert('Price must be greater than 0.');
+                return false;
+            }
+
+            return true;
+        }
+        
+        $(document).ready(function() {
+            initializeSelect2();
+        });
+    </script>
+</body>
+</html>

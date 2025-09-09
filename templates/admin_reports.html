@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Your CSS styles here */
+        body { 
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        .chart-wrapper {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+        .modern-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 1.75rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            .modern-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            }
+            .sidebar-link {
+                transition: all 0.3s ease;
+                border-radius: 0.75rem;
+                margin: 0.25rem 0;
+            }
+            .sidebar-link:hover {
+                background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+                color: #1e40af;
+                transform: translateX(4px);
+            }
+            .sidebar-link-active {
+                background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);  
+                color: #1e40af;
+                font-weight: 600;
+                box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+            }
+            .btn-primary {
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                color: white;
+                border-radius: 0.75rem;
+                padding: 0.625rem 1.25rem;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+            }
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            }
+            .btn-secondary {
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                color: #334155;
+                border-radius: 0.75rem;
+                padding: 0.625rem 1.25rem;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .btn-secondary:hover {
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            .btn-danger {
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+                color: white;
+                border-radius: 0.75rem;
+                padding: 0.625rem 1.25rem;
+                transition: all 0.3s ease;
+                box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+            }
+            .btn-danger:hover {
+                background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            }
+            .stats-icon {
+                padding: 1rem;
+                border-radius: 1rem;
+                transition: all 0.3s ease;
+            }
+            .stats-icon:hover {
+                transform: scale(1.05);
+            }
+            .chart-wrapper {
+                background: white;
+                border-radius: 1rem;
+                padding: 1rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+            .select2-container--default .select2-selection--single {
+                background-color: #fff;
+                border: 1px solid #d1d5db;
+                border-radius: 0.5rem;
+                height: 44px;
+                outline: none;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                color: #374151;
+                line-height: 42px;
+                padding-left: 1rem;
+                padding-right: 2rem;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__placeholder {
+                color: #6b7280;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 42px;
+                position: absolute;
+                top: 1px;
+                right: 1rem;
+                width: 20px;
+            }
+            .select2-container--default.select2-container--open .select2-selection--single {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+            }
+            .select2-dropdown {
+                background-color: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.75rem;
+                box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+                margin-top: 8px;
+            }
+            .select2-container--default .select2-search--dropdown .select2-search__field {
+                border: 1px solid #d1d5db;
+                border-radius: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                outline: none;
+            }
+            .select2-search--dropdown {
+                padding: 0.5rem;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            .select2-results__option {
+                padding: 0.75rem 1rem;
+            }
+            .select2-container--default .select2-results__option--highlighted[aria-selected] {
+                background-color: #eff6ff;
+                color: #1d4ed8;
+            }
+            .select2-container--default .select2-results__option[aria-selected=true] {
+                background-color: #dbeafe;
+                font-weight: 600;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__clear {
+                cursor: pointer;
+                font-size: 1.5em;
+                font-weight: bold;
+                color: #9ca3af;
+                position: absolute;
+                right: 2.5rem;
+                top: 50%;
+                transform: translateY(-50%);
+                transition: color 0.2s;
+                line-height: 1;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__clear:hover {
+                color: #ef4444;
+            }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 antialiased">
+    <div class="flex min-h-screen">
+        {% include '_admin_sidebar.html' %}
+    
+        <main class="flex-1 overflow-x-hidden overflow-y-auto mx-4">
+            <div class="w-full py-8">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">รายงาน</h1>
+                    <p class="text-gray-600 mt-1">รายงานข้อมูลอสังหาริมทรัพย์</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-2 mx-6">
+                    <div class="bg-gradient-to-r from-white-600 to-white-800 px-6 py-3">
+                        <h2 class="text-xl font-semibold text-Black">
+                            <i class="fas fa-filter mr-2"></i> กรองข้อมูลบ้าน
+                        </h2>
+                    </div>
+                    
+                    <form id="filterForm" method="GET" action="{{ url_for('admin_reports') }}" class="px-6 py-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
+                            <!-- ประเภทบ้าน -->
+                            <div class="lg:col-span-2">
+                                <label for="house_type_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-home mr-1 text-blue-600"></i> ประเภทบ้าน
+                                </label>
+                                <select id="house_type_id" name="type" class="select2 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition duration-150 ease-in-out">
+                                    <option value="">-- เลือกประเภท --</option>
+                                    {% for type in house_types %}
+                                        <option value="{{ type.id }}" {% if selected_type and selected_type|string == type.id|string %}selected{% endif %}>
+                                            {{ type.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- ชื่อโครงการ -->
+                            <div class="lg:col-span-3">
+                                <label for="project_id" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-building mr-1 text-blue-600"></i> ชื่อโครงการ
+                                </label>
+                                <select id="project_id" name="project" class="select2 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition duration-150 ease-in-out">
+                                    <option value="">-- เลือกโครงการ --</option>
+                                    {% for project in projects %}
+                                        <option value="{{ project.id }}" {% if selected_project and selected_project|string == project.id|string %}selected{% endif %}>
+                                            {{ project.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- ลักษณะบ้าน -->
+                            <div class="lg:col-span-2">
+                                <label for="feature" class="block text-sm font-medium text-gray-700 mb-1">
+                                    <i class="fas fa-home mr-1 text-blue-600"></i> ลักษณะบ้าน
+                                </label>
+                                <select id="feature" name="feature" class="select2 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition duration-150 ease-in-out">
+                                    <option value="">-- เลือกลักษณะบ้าน --</option>
+                                    {% for feature in house_features %}
+                                        <option value="{{ feature.id }}" {% if selected_feature and selected_feature|string == feature.id|string %}selected{% endif %}>
+                                            {{ feature.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- ปุ่มกรอง -->
+                            <div class="lg:col-span-5 flex items-end space-x-2">
+                                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 shadow-sm hover:shadow-md">
+                                    <i class="fas fa-search mr-2"></i> กรอง
+                                </button>
+                                <a href="{{ url_for('admin_reports') }}" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 shadow-sm hover:shadow-md">
+                                    <i class="fas fa-undo-alt mr-2"></i> ล้าง
+                                </a>
+                                <button type="button" onclick="generatePDF()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2.5 px-4 rounded-lg flex items-center justify-center transition-colors duration-200 shadow-sm hover:shadow-md">
+                                    <i class="fas fa-file-pdf mr-2"></i> PDF
+                                </button>
+                            </div>
+                        </div>
+                        </div>
+                    </form>
+                    </div>
+
+                <!-- Top Stats Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mx-6">
+                    <!-- Total Houses -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 flex items-center">
+                        <div class="p-3 rounded-xl bg-blue-100 text-blue-600 mr-4">
+                            <i class="fas fa-home text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">จำนวนบ้านทั้งหมด</p>
+                            <h3 id="totalHousesCount" class="text-2xl font-bold">0</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Projects -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 flex items-center">
+                        <div class="p-3 rounded-xl bg-purple-100 text-purple-600 mr-4">
+                            <i class="fas fa-building text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">จำนวนโครงการทั้งหมด</p>
+                            <h3 id="totalProjectsCount" class="text-2xl font-bold">0</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Total House Types -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 flex items-center">
+                        <div class="p-3 rounded-xl bg-green-100 text-green-600 mr-4">
+                            <i class="fas fa-th-large text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">จำนวนประเภทบ้านทั้งหมด</p>
+                            <h3 id="totalTypesCount" class="text-2xl font-bold">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mx-6">
+                    <!-- Row 1 -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">จำนวนบ้านตามประเภท</h3>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100">
+                                    <i class="fas fa-ellipsis-v text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="housesByTypeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm p-6 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">จำนวนบ้านตามโครงการ</h3>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100">
+                                    <i class="fas fa-ellipsis-v text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="housesByProjectChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">จำนวนบ้านตามสถานะ</h3>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100">
+                                    <i class="fas fa-ellipsis-v text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="housesByStatusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm p-6 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">จำนวนบ้านตามห้องนอน</h3>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100">
+                                    <i class="fas fa-ellipsis-v text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="housesByBedroomsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">จำนวนบ้านตามห้องน้ำ</h3>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100">
+                                    <i class="fas fa-ellipsis-v text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="housesByBathroomsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm p-6 h-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">จำนวนบ้านตามพื้นที่ใช้สอย</h3>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100">
+                                    <i class="fas fa-ellipsis-v text-gray-400"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="housesByLivingAreaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Store chart instances
+        const chartInstances = {};
+
+        // Modern color palette with gradients
+        const modernColors = [
+            'rgba(79, 70, 229, 0.8)',
+            'rgba(124, 58, 237, 0.8)',
+            'rgba(167, 139, 250, 0.8)',
+            'rgba(96, 165, 250, 0.8)',
+            'rgba(52, 211, 153, 0.8)',
+            'rgba(245, 158, 11, 0.8)'
+        ];
+
+        // Common chart options
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: {
+                            family: '"Kanit", sans-serif',
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#1f2937',
+                    titleFont: {
+                        family: '"Kanit", sans-serif',
+                        size: 12
+                    },
+                    bodyFont: {
+                        family: '"Kanit", sans-serif',
+                        size: 12
+                    },
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: '"Kanit", sans-serif',
+                            size: 11
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        font: {
+                            family: '"Kanit", sans-serif',
+                            size: 11
+                        },
+                        precision: 0
+                    }
+                }
+            }
+        };
+
+        // Initialize charts with empty data
+        function initializeCharts() {
+            // Chart configurations with labels and colors
+            const chartConfigs = [
+                { 
+                    id: 'housesByTypeChart', 
+                    type: 'bar',
+                    label: 'จำนวนบ้าน',
+                    backgroundColor: modernColors[0],
+                    borderColor: '#ffffff',
+                    title: 'จำนวนบ้านตามประเภท',
+                    emptyMessage: 'ไม่มีข้อมูลประเภทบ้าน',
+                    emptyData: {
+                        labels: ['ไม่มีข้อมูล'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['#e5e7eb'],
+                            borderWidth: 0
+                        }]
+                    }
+                },
+                { 
+                    id: 'housesByProjectChart', 
+                    type: 'bar',
+                    label: 'จำนวนบ้าน',
+                    backgroundColor: modernColors[1],
+                    borderColor: '#ffffff',
+                    title: 'จำนวนบ้านตามโครงการ',
+                    emptyMessage: 'ไม่มีข้อมูลโครงการ',
+                    emptyData: {
+                        labels: ['ไม่มีข้อมูล'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['#e5e7eb'],
+                            borderWidth: 0
+                        }]
+                    }
+                },
+                { 
+                    id: 'housesByStatusChart', 
+                    type: 'pie',
+                    label: 'จำนวนบ้าน',
+                    backgroundColor: modernColors,
+                    borderColor: '#ffffff',
+                    title: 'จำนวนบ้านตามสถานะ'
+                },
+                { 
+                    id: 'housesByBedroomsChart', 
+                    type: 'bar',
+                    label: 'จำนวนห้องนอน',
+                    backgroundColor: modernColors[3],
+                    borderColor: '#ffffff',
+                    title: 'จำนวนบ้านตามห้องนอน'
+                },
+                { 
+                    id: 'housesByBathroomsChart', 
+                    type: 'bar',
+                    label: 'จำนวนห้องน้ำ',
+                    backgroundColor: modernColors[4],
+                    borderColor: '#ffffff',
+                    title: 'จำนวนบ้านตามห้องน้ำ'
+                },
+                { 
+                    id: 'housesByLivingAreaChart', 
+                    type: 'bar',
+                    label: 'พื้นที่ใช้สอย (ตร.ม.)',
+                    backgroundColor: modernColors[5],
+                    borderColor: '#ffffff',
+                    title: 'จำนวนบ้านตามพื้นที่ใช้สอย'
+                }
+            ];
+
+            // Initialize each chart with its configuration
+            chartConfigs.forEach((config) => {
+                const ctx = document.getElementById(config.id);
+                if (!ctx) {
+                    console.error(`Chart container not found: ${config.id}`);
+                    return;
+                }
+
+                // Destroy existing chart instance if it exists
+                if (chartInstances[config.id]) {
+                    chartInstances[config.id].destroy();
+                }
+
+                const isPieChart = config.type === 'pie';
+                
+                // Create chart instance with configuration
+                try {
+                    chartInstances[config.id] = new Chart(ctx, {
+                        type: config.type,
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: config.label,
+                                data: [],
+                                backgroundColor: isPieChart ? 
+                                    config.backgroundColor : 
+                                    [config.backgroundColor],
+                                borderColor: config.borderColor,
+                                borderWidth: 1,
+                                borderRadius: isPieChart ? 0 : 8,
+                                barThickness: isPieChart ? undefined : 20
+                            }]
+                        },
+                        options: {
+                            ...commonChartOptions,
+                            plugins: {
+                                ...commonChartOptions.plugins,
+                                title: {
+                                    display: true,
+                                    text: config.title,
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold',
+                                        family: '"Kanit", sans-serif'
+                                    },
+                                    padding: { bottom: 10 }
+                                },
+                                legend: {
+                                    ...commonChartOptions.plugins.legend,
+                                    display: isPieChart,
+                                    position: isPieChart ? 'right' : 'top'
+                                }
+                            },
+                            scales: isPieChart ? {} : {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        display: true,
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    },
+                                    ticks: {
+                                        font: {
+                                            family: '"Kanit", sans-serif'
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        font: {
+                                            family: '"Kanit", sans-serif'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    console.log(`Initialized chart: ${config.id}`);
+                } catch (error) {
+                    console.error(`Error initializing chart ${config.id}:`, error);
+                }
+            });
+        }
+
+        // Update charts with data
+        function updateCharts(data) {
+            if (!data || !data.charts) {
+                console.log('No chart data available');
+                return;
+            }
+            console.log('Updating charts with data:', data);
+
+            // Update stats
+            if (data.stats) {
+                const { total_houses, total_projects, total_types } = data.stats;
+                if (document.getElementById('totalHousesCount')) {
+                    document.getElementById('totalHousesCount').textContent = total_houses || 0;
+                }
+                if (document.getElementById('totalProjectsCount')) {
+                    document.getElementById('totalProjectsCount').textContent = total_projects || 0;
+                }
+                if (document.getElementById('totalTypesCount')) {
+                    document.getElementById('totalTypesCount').textContent = total_types || 0;
+                }
+            }
+
+            // Update charts
+            const chartsData = data.charts || {};
+            console.log('Charts data:', chartsData);
+
+            // Process and update each chart
+            if (chartsData.housesByType && chartsData.housesByType.length > 0) {
+                const typeLabels = [];
+                const typeData = [];
+                
+                chartsData.housesByType.forEach(item => {
+                    if (item) {
+                        typeLabels.push(item.name || 'ไม่มีประเภท');
+                        typeData.push(item.house_count || 0);
+                    }
+                });
+                
+                if (typeLabels.length > 0) {
+                    updateChart('housesByTypeChart', typeLabels, typeData, 'bar');
+                } else {
+                    // If all items are null/undefined, show empty message
+                    const chart = chartInstances['housesByTypeChart'];
+                    if (chart) {
+                        chart.data.labels = ['ไม่มีข้อมูล'];
+                        chart.data.datasets = [{
+                            data: [1],
+                            backgroundColor: ['#e5e7eb'],
+                            borderWidth: 0
+                        }];
+                        chart.update();
+                    }
+                }
+            }
+
+            if (chartsData.housesByProject && chartsData.housesByProject.length > 0) {
+                const projectLabels = [];
+                const projectData = [];
+                
+                chartsData.housesByProject.forEach(item => {
+                    if (item) {
+                        projectLabels.push(item.name || 'ไม่มีโครงการ');
+                        projectData.push(item.house_count || 0);
+                    }
+                });
+                
+                if (projectLabels.length > 0) {
+                    updateChart('housesByProjectChart', projectLabels, projectData, 'bar');
+                } else {
+                    // If all items are null/undefined, show empty message
+                    const chart = chartInstances['housesByProjectChart'];
+                    if (chart) {
+                        chart.data.labels = ['ไม่มีข้อมูล'];
+                        chart.data.datasets = [{
+                            data: [1],
+                            backgroundColor: ['#e5e7eb'],
+                            borderWidth: 0
+                        }];
+                        chart.update();
+                    }
+                }
+            }
+
+            if (chartsData.housesByStatus) {
+                updateChart('housesByStatusChart',
+                    chartsData.housesByStatus.map(item => item.status || 'N/A'),
+                    chartsData.housesByStatus.map(item => item.count || 0),
+                    'pie'
+                );
+            }
+
+            if (chartsData.housesByBedrooms) {
+                updateChart('housesByBedroomsChart',
+                    chartsData.housesByBedrooms.map(item => `${item.bedrooms} ห้องนอน` || 'N/A'),
+                    chartsData.housesByBedrooms.map(item => item.count || 0),
+                    'bar'
+                );
+            }
+
+            if (chartsData.housesByBathrooms) {
+                updateChart('housesByBathroomsChart',
+                    chartsData.housesByBathrooms.map(item => `${item.bathrooms} ห้องน้ำ` || 'N/A'),
+                    chartsData.housesByBathrooms.map(item => item.count || 0),
+                    'bar'
+                );
+            }
+
+            if (chartsData.housesByLivingArea) {
+                updateChart('housesByLivingAreaChart',
+                    chartsData.housesByLivingArea.map(item => item.area_range ? `${item.area_range} ตร.ม.` : 'N/A'),
+                    chartsData.housesByLivingArea.map(item => item.count || 0),
+                    'bar'
+                );
+            }
+        }
+
+        // Helper function to update a single chart
+        function updateChart(chartId, labels, data, chartType) {
+            const chart = chartInstances[chartId];
+            if (!chart) {
+                console.error(`Chart ${chartId} not found`);
+                return;
+            }
+
+            // Update chart data
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            
+            // For pie charts, update colors
+            if (chartType === 'pie') {
+                chart.data.datasets[0].backgroundColor = modernColors.slice(0, labels.length);
+            }
+            
+            // Update the chart
+            chart.update({
+                duration: 800,
+                easing: 'easeInOutQuart'
+            });
+        }
+
+        // Fetch filtered data
+        function fetchFilteredData() {
+            const form = document.getElementById('filterForm');
+            if (!form) return;
+
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) params.append(key, value);
+            }
+
+            // Show loading state
+            const filterButton = form.querySelector('button[type="submit"]');
+            if (filterButton) {
+                const originalText = 'กรองข้อมูล';
+                filterButton.disabled = true;
+                filterButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${originalText}`;
+            }
+
+            // Fetch data
+            fetch(`/admin/reports/chart-data?${params.toString()}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    updateCharts({
+                        stats: data.stats,
+                        charts: data.charts
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    alert('เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาลองใหม่อีกครั้ง');
+                })
+                .finally(() => {
+                    if (filterButton) {
+                        filterButton.disabled = false;
+                        filterButton.innerHTML = '<i class="fas fa-filter mr-2"></i> กรอง';
+                    }
+                });
+        }
+
+        // Generate PDF report
+        function generatePDF() {
+            const filterButton = document.querySelector('button[type="submit"]');
+            const originalButtonHtml = filterButton ? filterButton.innerHTML : '';
+            
+            // Show loading state
+            if (filterButton) {
+                filterButton.disabled = true;
+                filterButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> รายงาน...';
+            }
+
+            try {
+                // Get current filter values from form
+                const filters = {};
+                
+                // Get all possible filter elements
+                const filterElements = {
+                    'project': 'project_id',
+                    'type': 'house_type_id',
+                    'feature': 'feature',
+                    'min_price': 'min_price',
+                    'max_price': 'max_price',
+                    'house_status': 'house_status',
+                    'search': 'search'
+                };
+
+                // Collect all filter values
+                Object.entries(filterElements).forEach(([param, elementId]) => {
+                    const element = document.getElementById(elementId);
+                    if (element && element.value) {
+                        filters[param] = element.value;
+                    }
+                });
+
+                // Build query string
+                const queryParams = new URLSearchParams();
+                for (const [key, value] of Object.entries(filters)) {
+                    if (value || value === 0) {
+                        queryParams.append(key, value);
+                    }
+                }
+
+                // Create a hidden iframe for the download
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+
+                // Set the iframe's src to trigger the download
+                const timestamp = new Date().getTime();
+                const pdfUrl = `/admin/reports/pdf?${queryParams.toString()}&_=${timestamp}`;
+                iframe.src = pdfUrl;
+
+                // Clean up after a delay
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    
+                    // Reset button state
+                    if (filterButton) {
+                        filterButton.disabled = false;
+                        filterButton.innerHTML = originalButtonHtml;
+                    }
+                }, 5000);
+
+            } catch (error) {
+                console.error('Error in generatePDF:', error);
+                
+                // Reset button state
+                if (filterButton) {
+                    filterButton.disabled = false;
+                    filterButton.innerHTML = originalButtonHtml;
+                }
+                
+                // Show error message
+                const errorMessage = 'เกิดข้อผิดพลาดในการสร้างรายงาน กรุณาลองใหม่อีกครั้ง';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: errorMessage,
+                        confirmButtonText: 'ตกลง'
+                    });
+                } else {
+                    alert(errorMessage);
+                }
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Select2
+            $('.select2').select2({
+                placeholder: 'เลือก...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('body')
+            });
+
+            // Make sure all chart containers are visible before initialization
+            const chartContainers = document.querySelectorAll('.chart-container');
+            chartContainers.forEach(container => {
+                container.style.visibility = 'hidden';
+                container.style.height = '300px';
+            });
+
+            // Initialize charts after a small delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeCharts();
+                
+                // Make charts visible after initialization
+                chartContainers.forEach(container => {
+                    container.style.visibility = 'visible';
+                });
+
+                // Handle window resize
+                let resizeTimer;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(() => {
+                        // Update all charts on window resize
+                        Object.values(chartInstances).forEach(chart => {
+                            if (chart) {
+                                chart.resize();
+                                chart.update();
+                            }
+                        });
+                    }, 250);
+                });
+            }, 100);
+
+            // Handle form submission
+            const form = document.getElementById('filterForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Update URL and submit the form
+                    const formData = new FormData(form);
+                    const params = new URLSearchParams();
+                    
+                    for (const [key, value] of formData.entries()) {
+                        if (value) params.append(key, value);
+                    }
+                    
+                    // Submit the form normally to refresh the page with new filters
+                    window.location.href = `${form.action}?${params.toString()}`;
+                });
+            }
+
+            // Initial load with any existing filters
+            if (window.location.search) {
+                fetchFilteredData();
+            } else {
+                // Also fetch data on initial load even if there are no filters
+                fetchFilteredData();
+            }
+        });
+    </script>
+</body>
+</html>

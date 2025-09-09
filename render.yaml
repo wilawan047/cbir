@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: cbir-housing
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: MYSQL_HOST
+        fromDatabase:
+          name: cbir-db
+          property: connectionString
+          envVar: MYSQL_HOST
+      - key: MYSQL_USER
+        fromDatabase:
+          name: cbir-db
+          property: username
+          envVar: MYSQL_USER
+      - key: MYSQL_PASSWORD
+        fromDatabase:
+          name: cbir-db
+          property: password
+          envVar: MYSQL_PASSWORD
+      - key: MYSQL_DATABASE
+        fromDatabase:
+          name: cbir-db
+          property: database
+          envVar: MYSQL_DATABASE
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+
+databases:
+  - name: cbir-db
+    databaseName: cbir_housing
+    user: cbir_user
+    plan: free

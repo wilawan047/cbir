@@ -1,0 +1,132 @@
+{% extends "_admin_layout.html" %}
+
+{% block title %}Edit House Feature{% endblock %}
+
+{% block content %}
+<style>
+    body { 
+        font-family: 'Kanit', sans-serif;
+        background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+    }
+    .sidebar-link-active {
+        background-color: #e0f2f7;
+        color: #0284c7;
+        font-weight: 600;
+    }
+</style>
+
+<main class="flex-1 p-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-1">แก้ไขลักษณะบ้าน</h1>
+            <div class="text-gray-500 text-base">อัปเดตข้อมูลลักษณะบ้าน</div>
+        </div>
+        <a href="{{ url_for('admin_house_features') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white-200 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            กลับหน้าจัดการลักษณะบ้าน
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <form action="{{ url_for('admin_edit_house_feature', id=feature.id) }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="space-y-6">
+                <div>
+                    <label for="f_name" class="block text-sm font-medium text-gray-700 mb-1">ชื่อลักษณะบ้าน</label>
+                    <input type="text" name="f_name" id="f_name" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        value="{{ feature.name }}"
+                        placeholder="กรอกชื่อลักษณะบ้าน">
+                </div>
+
+                <div>
+                    <label for="f_description" class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                    <textarea name="f_description" id="f_description" rows="4"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter feature description">{{ feature.description }}</textarea>
+                </div>
+
+                <div>
+                    <label for="f_image" class="block text-sm font-medium text-gray-700 mb-1">รูปภาพลักษณะบ้าน</label>
+                    <div class="mb-2">
+                        {% set image_found = false %}
+                        {# Display the image with a simple fallback #}
+                        <img 
+                            src="{{ url_for('static', filename='img/' ~ feature.image) if feature.image else url_for('static', filename='img/house_placeholder.jpg') }}" 
+                            alt="{{ feature.name }}" 
+                            class="max-h-32 rounded-md shadow-sm object-cover"
+                            style="width: auto; height: 8rem;"
+                            id="featureImage"
+                            data-fallback-src="{{ url_for('static', filename='img/house_placeholder.jpg') }}"
+                        >
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const img = document.getElementById('featureImage');
+                            if (img) {
+                                img.addEventListener('error', function() {
+                                    const fallback = this.getAttribute('data-fallback-src');
+                                    if (fallback) {
+                                        this.src = fallback;
+                                    }
+                                });
+                            }
+                        });
+                        </script>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Current Image: {{ feature.image if feature.image else 'Using default placeholder' }}
+                        </p>
+                    </div>
+                    <input type="file" id="f_image" name="f_image" accept="image/*"
+                        class="block w-full text-sm text-gray-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-md file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100 cursor-pointer">
+                    <div id="image-preview-container" class="mt-4 hidden">
+                        <img id="previewImage" class="max-h-48 mx-auto rounded-md shadow-md" alt="Image preview">
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        อัปเดตลักษณะบ้าน
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('f_image');
+    const previewImage = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('image-preview-container');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewImage.src = '';
+            previewContainer.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}

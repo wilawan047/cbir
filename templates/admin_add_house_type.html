@@ -1,0 +1,98 @@
+{% extends "_admin_layout.html" %}
+
+{% block title %}Add New House Type{% endblock %}
+
+{% block content %}
+<style>
+    body { 
+        font-family: 'Kanit', sans-serif;
+        background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+    }
+</style>
+
+<main class="flex-1 p-8">
+    <!-- Top Bar -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-1">เพิ่มประเภทบ้านใหม่</h1>
+            <div class="text-gray-500 text-base">สร้างประเภทบ้านใหม่</div>
+        </div>
+        <a href="{{ url_for('admin_house_types') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white-200 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            กลับหน้าจัดการประเภทบ้าน
+        </a>
+    </div>
+
+    <!-- Add House Type Form -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+        <form method="POST" action="{{ url_for('admin_add_house_type') }}" class="space-y-6" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <!-- House Type Name -->
+            <div>
+                <label for="t_name" class="block text-sm font-medium text-gray-700 mb-1">ชื่อประเภทบ้าน</label>
+                <input type="text" id="t_name" name="t_name" required
+                    class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
+                    placeholder="กรอกชื่อประเภทบ้าน">
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                <textarea id="description" name="t_description" rows="4"
+                    class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
+                    placeholder="กรอกคำอธิบายประเภทบ้าน"></textarea>
+            </div>
+
+            <!-- House Type Image -->
+            <div>
+                <label for="t_image" class="block text-sm font-medium text-gray-700 mb-1">รูปภาพประเภทบ้าน</label>
+                <input type="file" id="t_image" name="t_image" accept="image/*"
+                    class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100 cursor-pointer transition-colors duration-200">
+                <div id="image-preview-container" class="mt-4 hidden">
+                    <img id="previewImage" class="max-h-48 rounded-lg shadow-md" alt="Image preview">
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end pt-4">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                    สร้างประเภทบ้าน
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('t_image');
+    const previewImage = document.getElementById('previewImage');
+    const previewContainer = document.getElementById('image-preview-container');
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewImage.src = '';
+            previewContainer.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %} 

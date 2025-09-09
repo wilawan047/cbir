@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <style>
+        body {  
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        /* Modern card styles with gradient and improved shadows */
+        .modern-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            padding: 1.75rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        /* Enhanced sidebar styles */
+        .sidebar-link {
+            transition: all 0.3s ease;
+            border-radius: 0.75rem;
+            margin: 0.25rem 0;
+        }
+        .sidebar-link:hover {
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            color: #1e40af;
+            transform: translateX(4px);
+        }
+        .sidebar-link-active {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        }
+        /* Modern button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #334155;
+            border-radius: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        /* Stats card icon styles */
+        .stats-icon {
+            padding: 1rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+        .stats-icon:hover {
+            transform: scale(1.05);
+        }
+        /* Chart container styles */
+        .chart-wrapper {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        {% include '_admin_sidebar.html' %}
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+  <!-- Desktop-first grid layout for scroll-free dashboard -->
+  <div class="grid grid-cols-12 grid-rows-[auto_auto_auto] gap-6 min-h-[80vh]">
+
+            <!-- Top Bar -->
+            <div class="col-span-12 mb-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-1">ภาพรวมแดชบอร์ด</h1>
+  <div class="text-gray-500 text-base">ข้อมูลภาพรวมข้อมูลอสังหาริมทรัพย์</div>
+</div>
+
+            <!-- Search and Quick Actions -->
+            <div class="col-span-12 modern-card mb-0">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <!-- Search Bar -->
+                    <div class="flex-1">
+                        <form action="{{ url_for('admin_houses') }}" method="GET" class="relative">
+                            <input type="text" name="search" placeholder="ค้นหาบ้าน..." 
+                                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value="{{ request.args.get('search', '') }}">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Quick Actions -->
+                    <div class="flex flex-wrap gap-3">
+                         <a href="{{ url_for('admin_add_house') }}" class="inline-flex items-center px-4 py-2 btn-primary transition duration-150 ease-in-out">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            เพิ่มบ้านใหม่
+                        </a>
+                        <a href="{{ url_for('admin_add_project') }}" class="inline-flex items-center px-4 py-2 btn-secondary transition duration-150 ease-in-out">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            เพิ่มโครงการ
+                        </a>
+                        <a href="{{ url_for('admin_add_house_type') }}" class="inline-flex items-center px-4 py-2 btn-secondary transition duration-150 ease-in-out">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            เพิ่มประเภทบ้าน
+                        </a>
+                        <a href="{{ url_for('admin_reports') }}" class="inline-flex items-center px-4 py-2 btn-secondary transition duration-150 ease-in-out">
+                            <img src="/static/img/icons/reports.png" alt="reports Icon" class="w-6 h-6 mr-3">
+                            รายงาน
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Stats Cards -->
+            <!-- Stats Cards Row (compact) -->
+<div class="col-span-12 grid grid-cols-4 gap-4 mb-2">
+                <div class="modern-card flex items-center justify-between" title="Total number of houses in the system">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500">จำนวนบ้านทั้งหมด</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ total_houses }}</div>
+                    </div>
+                    <div class="stats-icon bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m0 0l7 7m-2 2v5a1 1 0 01-1 1H9m2-2v-5a1 1 0 011-1h2m2-2a2 2 0 100-4 2 2 0 000 4z"></path></svg>
+                    </div>
+                </div>
+                <div class="modern-card flex items-center justify-between" title="Today's views">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500">จำนวนการเข้าชมในวันนี้</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ todays_views or 0 }}</div>
+                    </div>
+                    <div class="stats-icon bg-gradient-to-br from-purple-100 to-purple-50 text-purple-600">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modern-card flex items-center justify-between" title="Total number of projects">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500">จำนวนโครงการทั้งหมด</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ total_projects }}</div>
+                    </div>
+                    <div class="stats-icon bg-gradient-to-br from-green-100 to-green-50 text-green-600">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    </div>
+                </div>
+                <div class="modern-card flex items-center justify-between" title="Total number of house types">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500">จำนวนประเภทบ้านทั้งหมด</div>
+                        <div class="text-3xl font-bold text-gray-900 mt-1">{{ total_types }}</div>
+                    </div>
+                    <div class="stats-icon bg-gradient-to-br from-yellow-100 to-yellow-50 text-yellow-600">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+          
+            <!-- Latest Houses Section -->
+        <!-- Chart: Houses by Type -->
+<div class="col-span-4 modern-card mb-2 p-4 min-h-[340px]">
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-xl font-semibold text-gray-800">บ้านล่าสุด</div>
+      <a href="{{ url_for('admin_houses') }}" class="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
+        ดูทั้งหมด
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    {% if latest_houses and latest_houses|length > 0 %}
+    <ul class="divide-y divide-gray-200">
+        {% for house in latest_houses[:4] %}
+            <li class="py-4 flex items-center justify-between hover:bg-gray-50 transition duration-150 ease-in-out">
+                <div class="flex items-center">
+                    {% if house.main_image_url %}
+                        <img src="{{ house.main_image_url }}" alt="{{ house.title }}" class="w-16 h-16 rounded-lg object-cover mr-4 border border-gray-200">
+                    {% else %}
+                        <div class="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center mr-4 text-gray-500">No Image</div>
+                    {% endif %}
+                    <div>
+                        <div class="text-base font-medium text-gray-900">{{ house.title }}</div>
+                        <div class="text-sm text-gray-500">{{ house.created_at }}</div>
+                    </div>
+                </div>
+                <!-- Add actions like view/edit later -->
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="text-gray-400 text-center py-10">
+        <svg class="mx-auto w-12 h-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 4h6a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        ไม่มีบ้านล่าสุดที่จะแสดง
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recently Edited Houses Card Grid -->
+<div class="col-span-8">
+  <div class="modern-card mb-2 p-4">
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-xl font-semibold text-gray-800">บ้านล่าสุดที่แก้ไข</div>
+    </div>
+    {% if recently_edited_houses and recently_edited_houses|length > 0 %}
+    <div class="flex flex-wrap justify-center gap-8">
+      {% for house in recently_edited_houses[:2] %}
+        <a href="{{ url_for('house_detail', house_id=house.id) }}" class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 w-[340px]">
+          <div class="relative overflow-hidden">
+            <img src="{{ house.main_image_url if house.main_image_url else '/static/img/house_placeholder.jpg' }}" alt="Image of {{ house.title }}" class="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300">
+            <div class="absolute top-3 right-3 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">{{ house.type_name }}</div>
+          </div>
+          <div class="p-6 flex flex-col justify-between flex-grow">
+            <div>
+              <h3 class="text-xl font-extrabold text-gray-900 mb-1">{{ house.title }}</h3>
+              <div class="flex items-center gap-2 text-gray-700 text-base mb-1 flex-wrap">
+                <img src="{{ url_for('static', filename='img/icons/location_icon.png') }}" alt="Location Icon" class="w-5 h-5 text-green-500">
+                {{ house.project_name or 'N/A' }}
+              </div>
+              <div class="mt-4 flex justify-between items-center space-x-2 text-base text-gray-800">
+                <span class="flex items-center whitespace-nowrap">
+                  <img src="{{ url_for('static', filename='img/icons/bed_icon.png') }}" alt="Bedrooms" class="w-5 h-5 mr-1">
+                  {{ house.bedrooms }} ห้องนอน
+                </span>
+                <span class="flex items-center whitespace-nowrap">
+                  <img src="{{ url_for('static', filename='img/icons/bath_icon.png') }}" alt="Bathrooms" class="w-5 h-5 mr-1">
+                  {{ house.bathrooms }} ห้องน้ำ
+                </span>
+                {% if house.area is not none %}
+                <span class="flex items-center whitespace-nowrap">
+                  <img src="{{ url_for('static', filename='img/icons/area_icon.png') }}" alt="Area" class="w-5 h-5 mr-1">
+                  {{ "{:,.0f}".format(house.area | float) }} ตร.ม.
+                </span>
+                {% endif %}
+              </div>
+            </div>
+            <div>
+              <div class="border-t border-gray-200 mt-4 mb-2"></div>
+              <div class="text-blue-700 font-extrabold text-2xl text-right">
+                ฿{{ "{:,.0f}".format(house.price | float) }}
+              </div>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="text-gray-400 text-center py-10">
+        <svg class="mx-auto w-12 h-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 4h6a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        ไม่มีบ้านล่าสุดที่แก้ไขที่จะแสดง
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+      </div>
+    </main>
+    </div>
+<script>
+    // Data passed from Flask
+    const housesByTypeData = JSON.parse('{{ (houses_by_type_data or []) | tojson | safe }}');
+    const housesByProjectData = JSON.parse('{{ (houses_by_project_data or []) | tojson | safe }}');
+    const housesStatusDistributionData = JSON.parse('{{ (houses_status_distribution_data or []) | tojson | safe }}');
+
+    // Data passed from Flask for Houses by Features
+    const housesByBedroomsData = JSON.parse('{{ (houses_by_bedrooms_data or []) | tojson | safe }}');
+    const housesByBathroomsData = JSON.parse('{{ (houses_by_bathrooms_data or []) | tojson | safe }}');
+    const housesByLivingAreaData = JSON.parse('{{ (houses_by_living_area_data or []) | tojson | safe }}');
+    const houseAdditionsData = JSON.parse('{{ (house_additions_data or []) | tojson | safe }}');
+
+    // Helper function to extract labels and data from Flask data
+    function extractChartData(data) {
+        const labels = [];
+        const counts = [];
+        data.forEach(item => {
+            labels.push(item.name || item.status);
+            counts.push(item.house_count || item.count);
+        });
+        return { labels, counts };
+    }
+
+    // Define a modern color palette with gradients
+    const modernColors = [
+        {
+            background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+            border: '#4f46e5'
+        },
+        {
+            background: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)',
+            border: '#7c3aed'
+        },
+        {
+            background: 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%)',
+            border: '#a78bfa'
+        },
+        {
+            background: 'linear-gradient(135deg, #c4b5fd 0%, #ddd6fe 100%)',
+            border: '#c4b5fd'
+        },
+        {
+            background: 'linear-gradient(135deg, #e0e7ff 0%, #eff6ff 100%)',
+            border: '#e0e7ff'
+        }
+    ];
+
+    // Common chart options for modern look
+    const commonChartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false,
+                position: 'right',
+                labels: {
+                    usePointStyle: true,
+                    boxWidth: 8,
+                    padding: 20,
+                    font: {
+                        family: 'Kanit',
+                        size: 12
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(226, 232, 240, 0.5)',
+                    drawBorder: false
+                },
+                ticks: {
+                    font: {
+                        family: 'Kanit',
+                        size: 12
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    font: {
+                        family: 'Kanit',
+                        size: 12
+                    }
+                }
+            }
+        }
+    };
+
+    // Render Houses by Type Chart with modern styling
+    const housesByTypeChartData = extractChartData(housesByTypeData);
+    new Chart(document.getElementById('housesByTypeChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: housesByTypeChartData.labels,
+            datasets: [{
+                label: 'Number of Houses',
+                data: housesByTypeChartData.counts,
+                backgroundColor: modernColors[0].background,
+                borderColor: modernColors[0].border,
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 20
+            }]
+        },
+        options: commonChartOptions
+    });
+
+    // Render Houses by Project Chart with modern styling
+    const housesByProjectChartData = extractChartData(housesByProjectData);
+    new Chart(document.getElementById('housesByProjectChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: housesByProjectChartData.labels,
+            datasets: [{
+                label: 'Number of Houses',
+                data: housesByProjectChartData.counts,
+                backgroundColor: modernColors[1].background,
+                borderColor: modernColors[1].border,
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 20
+            }]
+        },
+        options: commonChartOptions
+    });
+
+    // Render House Status Distribution Chart with modern styling
+    const housesStatusChartData = extractChartData(housesStatusDistributionData);
+    new Chart(document.getElementById('housesByStatusChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: housesStatusChartData.labels,
+            datasets: [{
+                data: housesStatusChartData.counts,
+                backgroundColor: modernColors.map(color => color.background),
+                borderColor: '#ffffff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            ...commonChartOptions,
+            plugins: {
+                ...commonChartOptions.plugins,
+                legend: {
+                    ...commonChartOptions.plugins.legend,
+                    display: true
+                }
+            }
+        }
+    });
+
+    // Render Houses by Bedrooms Chart with modern styling
+    const housesByBedroomsChartData = extractChartData(housesByBedroomsData);
+    new Chart(document.getElementById('housesByBedroomsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: housesByBedroomsChartData.labels,
+            datasets: [{
+                label: 'Number of Houses',
+                data: housesByBedroomsChartData.counts,
+                backgroundColor: modernColors[2].background,
+                borderColor: modernColors[2].border,
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 20
+            }]
+        },
+        options: commonChartOptions
+    });
+
+    // Render Houses by Bathrooms Chart with modern styling
+    const housesByBathroomsChartData = extractChartData(housesByBathroomsData);
+    new Chart(document.getElementById('housesByBathroomsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: housesByBathroomsChartData.labels,
+            datasets: [{
+                label: 'Number of Houses',
+                data: housesByBathroomsChartData.counts,
+                backgroundColor: modernColors[3].background,
+                borderColor: modernColors[3].border,
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 20
+            }]
+        },
+        options: commonChartOptions
+    });
+
+    // Render Houses by Living Area Chart with modern styling
+    const housesByLivingAreaChartData = extractChartData(housesByLivingAreaData);
+    new Chart(document.getElementById('housesByLivingAreaChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: housesByLivingAreaChartData.labels,
+            datasets: [{
+                label: 'Number of Houses',
+                data: housesByLivingAreaChartData.counts,
+                backgroundColor: modernColors[4].background,
+                borderColor: modernColors[4].border,
+                borderWidth: 1,
+                borderRadius: 8,
+                barThickness: 20
+            }]
+        },
+        options: commonChartOptions
+    });
+
+    // Initialize Select2 for the filter dropdowns
+    $(document).ready(function() {
+        $('#house_type').select2({
+            placeholder: "ค้นหาประเภทบ้าน...",
+            allowClear: true
+        });
+        $('#project').select2({
+            placeholder: "ค้นหาจังหวัดในโครงการ...",
+            allowClear: true
+        });
+        $('#house_feature').select2({
+            placeholder: "ค้นหาลักษณะบ้าน...",
+            allowClear: true
+        });
+    });
+</script>
+</body>
+</html>

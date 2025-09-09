@@ -1,0 +1,275 @@
+{% extends "_base.html" %}
+
+{% block title %}
+    Search Results - BAANTANG
+{% endblock %}
+
+{% block content %}
+<div class="bg-white">
+    <!-- Results Header -->
+    <div class="bg-gradient-to-r from-blue-500 to-cyan-400 text-white text-center py-12 shadow-inner">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight">ผลการค้นหา</h1>
+            <p class="mt-3 text-lg md:text-xl opacity-90">
+                {% if pagination and pagination.total > 0 %}
+                    พบ {{ pagination.total }} รายการที่ตรงกับความต้องการของคุณ
+                {% elif houses|length > 0 %}
+                    พบ {{ houses|length }} รายการที่ตรงกับความต้องการของคุณ
+                {% else %}
+                    ไม่พบรายการที่ตรงกับการค้นหา
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Filter Bar Section -->
+    <div class="bg-white py-6 border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <!-- Search and Filter Bar -->
+            <form method="GET" action="{{ url_for('houses_list') }}" class="flex items-center gap-3 bg-white rounded-xl shadow-md border border-gray-200 w-full max-w-5xl mx-auto px-4 py-3">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs text-gray-500 font-semibold mb-1 ml-1">ค้นหา</label>
+                    <input type="search" name="search" placeholder="ชื่อ, ประเภท, โครงการ..." 
+                           value="{{ request.args.get('search', '') }}"
+                           class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-left focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all duration-200">
+                </div>
+                
+                 <!-- House Type Dropdown (modernized) -->
+                 <div class="flex-1 min-w-[120px]" x-data="dropdown({options: [{id: '', name: 'ค้นหาประเภทบ้าน'}, {% for type in house_types %}{id: '{{ type.id }}', name: '{{ type.name }}'},{% endfor %}], selected: '{{ request.args.get('house_type', '') }}', name: 'house_type'})">
+                    <label class="block text-xs text-gray-500 font-semibold mb-1 ml-1">ประเภทบ้าน</label>
+                    <div class="relative">
+                        <input type="hidden" name="house_type" :value="selected">
+                        <button type="button" class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-left focus:ring-2 focus:ring-blue-400 focus:border-blue-400 flex items-center justify-between shadow-sm transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis relative" @click="open = !open">
+                            <span x-text="selectedName()" class="truncate"></span>
+                            <template x-if="selected && selected !== options[0].id">
+                                <svg @click.stop="select(options[0].id)" class="w-4 h-4 text-gray-400 hover:text-red-400 cursor-pointer absolute right-8 top-1/2 -translate-y-1/2 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </template>
+                            <svg class="w-4 h-4 ml-2 text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <div x-show="open" @click.away="open = false" class="absolute z-20 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto transition-all duration-200" x-transition>
+                            <input type="text" x-model="search" placeholder="ค้นหา..." class="w-full px-3 py-2 border-b border-gray-100 focus:outline-none focus:ring-0 text-sm">
+                            <template x-for="option in filteredOptions()" :key="option.id">
+                                <div @click="select(option.id)" class="px-3 py-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-150" :class="{'font-semibold text-blue-600 bg-blue-50': selected === option.id}">
+                                    <span x-text="option.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project Dropdown (modernized) -->
+                <div class="flex-1 min-w-[120px]" x-data="dropdown({options: [{id: '', name: 'ค้นหาจังหวัดในโครงการ'}, {% for project in projects %}{id: '{{ project.id }}', name: '{{ project.name }}'},{% endfor %}], selected: '{{ request.args.get('project', '') }}', name: 'project'})">
+                    <label class="block text-xs text-gray-500 font-semibold mb-1 ml-1">จังหวัดในโครงการ</label>
+                    <div class="relative">
+                        <input type="hidden" name="project" :value="selected">
+                        <button type="button" class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-left focus:ring-2 focus:ring-blue-400 focus:border-blue-400 flex items-center justify-between shadow-sm transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis relative" @click="open = !open">
+                            <span x-text="selectedName()" class="truncate"></span>
+                            <template x-if="selected && selected !== options[0].id">
+                                <svg @click.stop="select(options[0].id)" class="w-4 h-4 text-gray-400 hover:text-red-400 cursor-pointer absolute right-8 top-1/2 -translate-y-1/2 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </template>
+                            <svg class="w-4 h-4 ml-2 text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <div x-show="open" @click.away="open = false" class="absolute z-20 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto transition-all duration-200" x-transition>
+                            <input type="text" x-model="search" placeholder="ค้นหา..." class="w-full px-3 py-2 border-b border-gray-100 focus:outline-none focus:ring-0 text-sm">
+                            <template x-for="option in filteredOptions()" :key="option.id">
+                                <div @click="select(option.id)" class="px-3 py-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-150" :class="{'font-semibold text-blue-600 bg-blue-50': selected === option.id}">
+                                    <span x-text="option.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                <!-- Feature Dropdown -->
+                <div class="flex-1 min-w-[120px]" x-data="dropdown({
+                    options: [
+                        {id: '', name: 'ค้นหาลักษณะบ้าน'},
+                        {% for feature in house_features %}
+                            {id: '{{ feature.id }}', name: '{{ feature.name }}'}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ], 
+                    selected: '{{ request.args.get('feature', '') }}', 
+                    name: 'feature',
+                    persist: true
+                })">
+                    <label class="block text-xs text-gray-500 font-semibold mb-1 ml-1">ลักษณะบ้าน</label>
+                    <div class="relative">
+                            <input type="hidden" name="feature" :value="selected">
+                            <button type="button" class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-white text-left focus:ring-2 focus:ring-blue-400 focus:border-blue-400 flex items-center justify-between shadow-sm transition-all duration-200 whitespace-nowrap overflow-hidden text-ellipsis relative" @click="open = !open" x-text="selected ? (options.find(opt => opt.id === selected)?.name || options[0].name) : options[0].name" :class="{'text-gray-400': !selected}">
+                                <span x-text="selected ? (options.find(opt => opt.id === selected)?.name || options[0].name) : options[0].name" class="truncate"></span>
+                                <template x-if="selected && selected !== options[0].id">
+                                    <svg @click.stop="select(options[0].id)" class="w-4 h-4 text-gray-400 hover:text-red-400 cursor-pointer absolute right-8 top-1/2 -translate-y-1/2 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </template>
+                                <svg class="w-4 h-4 ml-2 text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                        <div x-show="open" @click.away="open = false" class="absolute z-20 mt-2 w-full bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto transition-all duration-200" x-transition>
+                            <input type="text" x-model="search" placeholder="ค้นหา..." class="w-full px-3 py-2 border-b border-gray-100 focus:outline-none focus:ring-0 text-sm">
+                            <template x-for="option in filteredOptions()" :key="option.id">
+                                <div @click="select(option.id)" class="px-3 py-2 cursor-pointer hover:bg-blue-50 rounded-lg transition-all duration-150" :class="{'font-semibold text-blue-600 bg-blue-50': selected === option.id}">
+                                    <span x-text="option.name"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl ml-0 md:ml-2 mt-6 md:mt-0 font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 align-middle shadow-md self-end" style="min-width: 90px;">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <span>ค้นหา</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content: House Grid -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Query Image Preview -->
+        {% if query_image %}
+        <div class="mb-12 flex flex-col items-center">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">รูปที่ใช้ค้นหา</h3>
+            <img src="{{ url_for('static', filename='uploads/' + query_image) }}" alt="Query Image" class="w-48 h-48 object-cover rounded-2xl border-4 border-white shadow-xl transform hover:scale-105 transition-transform duration-300">
+        </div>
+        {% endif %}
+
+        {% if houses|length == 0 %}
+            <div class="flex flex-col items-center justify-center py-24">
+                <svg class="w-24 h-24 mb-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <div class="text-2xl font-bold text-gray-400 mb-2">ไม่พบบ้านที่ตรงกับการค้นหา</div>
+                <div class="text-gray-500">ลองเปลี่ยนคำค้นหาหรือปรับตัวกรองใหม่อีกครั้ง</div>
+            </div>
+        {% else %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for house in houses %}
+                <a href="{{ url_for('house_detail', house_id=house.id) }}" class="group block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ house.main_image_url if house.main_image_url else '/static/img/house_placeholder.jpg' }}" alt="Image of {{ house.title }}" class="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">{{ house.type_name }}</div>
+                {% if house.similarity is defined and house.similarity is not none %}
+                <div class="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow">คล้าย {{ (house.similarity * 100) | round(1) }}%</div>
+                {% endif %}
+                    </div>
+                    <div class="p-4 flex flex-col justify-between flex-grow">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-1">{{ house.title }}</h3>
+                            <div class="flex items-center gap-2 text-gray-700 text-sm mb-1 flex-wrap">
+                                <img src="{{ url_for('static', filename='img/icons/location_icon.png') }}" alt="Location Icon" class="w-4 h-4 text-green-500">
+                                {{ house.location or house.project_name or 'N/A' }}
+                                <span class="mx-1 text-gray-400"></span>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center space-x-2 text-sm text-gray-800  ">
+                                <span class="flex items-center whitespace-nowrap">
+                                    <img src="{{ url_for('static', filename='img/icons/bed_icon.png') }}" alt="Bedrooms" class="w-4 h-4 mr-1">
+                                    {{ house.bedrooms }} ห้องนอน
+                                </span>
+                                <span class="flex items-center whitespace-nowrap">
+                                    <img src="{{ url_for('static', filename='img/icons/bath_icon.png') }}" alt="Bathrooms" class="w-4 h-4 mr-1">
+                                    {{ house.bathrooms }} ห้องน้ำ
+                                </span>
+                                {% if house.area is not none %}
+                                <span class="flex items-center whitespace-nowrap">
+                                    <img src="{{ url_for('static', filename='img/icons/area_icon.png') }}" alt="Area" class="w-4 h-4 mr-1">
+                                    {{ "{:,.0f}".format(house.area | float) }} ตร.ม.
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="border-t border-gray-200 mt-4 mb-2"></div>
+                            <div class="text-blue-700 font-bold text-lg text-right">
+                                ฿{{ "{:,.0f}".format(house.price | float) }}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <nav class="flex justify-center my-8">
+        <ul class="flex items-center -space-x-px h-10 text-base">
+            <li>
+                <a href="{{ url_for('houses_list', page=pagination.prev_num, **request.args) if pagination.has_prev else '#' }}" 
+                   class="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 {{ 'opacity-50 cursor-not-allowed' if not pagination.has_prev }}">
+                    <span class="sr-only">Previous</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                    </svg>
+                </a>
+            </li>
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    <li>
+                        <a href="{{ url_for('houses_list', page=page_num, **request.args) }}" 
+                           class="flex items-center justify-center px-4 h-10 leading-tight {{ 'text-blue-600 border-blue-300 bg-blue-50 hover:bg-blue-100 hover:text-blue-700' if page_num == pagination.page else 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700' }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li>
+                        <span class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            <li>
+                <a href="{{ url_for('houses_list', page=pagination.next_num, **request.args) if pagination.has_next else '#' }}" 
+                   class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 {{ 'opacity-50 cursor-not-allowed' if not pagination.has_next }}">
+                    <span class="sr-only">Next</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                    </svg>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+    // Alpine.js data for dropdowns
+    function dropdown({options, selected, name}) {
+        return {
+            open: false,
+            search: '',
+            selected: selected || '',
+            name: name,
+            options: options,
+            select(id) {
+                this.selected = id;
+                this.open = false;
+            },
+            selectedName() {
+                const found = this.options.find(option => option.id == this.selected);
+                return found ? found.name : this.options[0].name;
+            },
+            filteredOptions() {
+                if (!this.search) return this.options;
+                const searchTerm = this.search.toLowerCase();
+                return this.options.filter(option => 
+                    option.name.toLowerCase().includes(searchTerm)
+                );
+            }
+        };
+    }
+</script>
+{% endblock %}
+<!-- Add Choices.js CSS in the <head> or before </body> in your base template -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+<!-- Add Choices.js JS and initialization at the end of the file or in your base template -->
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  new Choices('#type-select', { searchEnabled: true, itemSelectText: '', shouldSort: false });
+  new Choices('#project-select', { searchEnabled: true, itemSelectText: '', shouldSort: false });
+  new Choices('#feature-select', { searchEnabled: true, itemSelectText: '', shouldSort: false });
+});
+</script> 

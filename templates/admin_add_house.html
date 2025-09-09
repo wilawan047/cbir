@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New House</title>
+    
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        // Verify jQuery and Select2 are loaded
+        window.addEventListener('load', function() {
+            if (window.jQuery) {
+                console.log('jQuery is loaded');
+                if ($.fn.select2) {
+                    console.log('Select2 is loaded');
+                    initializeSelect2();
+                } else {
+                    console.error('Select2 is not loaded');
+                }
+            } else {
+                console.error('jQuery is not loaded');
+            }
+        });
+
+        function initializeSelect2() {
+            // Initialize Select2 elements
+            $('#t_id').select2({
+                placeholder: "เลือกประเภทบ้าน...",
+                allowClear: true,
+                width: '100%'
+            });
+
+            $('#p_id').select2({
+                placeholder: "เลือกโครงการ...",
+                allowClear: true,
+                width: '100%'
+            });
+            
+            // This is now a single-select dropdown
+            $('#f_id').select2({
+                placeholder: "เลือกคุณลักษณะบ้าน...",
+                allowClear: true,
+                width: '100%'
+            });
+        }
+        
+        let selectedFiles = [];
+
+        function previewMultipleImages(input) {
+            const previewContainer = document.getElementById('multipleImagePreview');
+            previewContainer.innerHTML = '';
+            selectedFiles = Array.from(input.files);
+            selectedFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'relative';
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview rounded-lg border border-gray-200 w-24 h-24 object-cover';
+                    // Remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 focus:outline-none';
+                    removeBtn.onclick = function() { removeImage(idx); };
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(removeBtn);
+                    previewContainer.appendChild(wrapper);
+                }
+                reader.readAsDataURL(file);
+            });
+            updateInputFiles();
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            updateInputFiles();
+            // Re-render previews
+            const input = document.getElementById('house_images');
+            previewMultipleImages({ files: selectedFiles });
+        }
+
+        function updateInputFiles() {
+            // Create a new DataTransfer to update the input's files
+            const input = document.getElementById('house_images');
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            input.files = dt.files;
+        }
+        
+        // This is a basic form validation that works for this form.
+        function validateForm() {
+            const project = document.getElementById('p_id').value;
+            const houseType = document.getElementById('t_id').value;
+            const price = document.getElementById('price').value;
+            const description = document.getElementById('description').value;
+            const title = document.getElementById('h_title').value;
+            const feature = document.getElementById('f_id').value;
+
+            if (!project || !houseType || !price || !description || !title || !feature) {
+                alert('Please fill in all required fields.');
+                return false;
+            }
+
+            if (price <= 0) {
+                alert('Price must be greater than 0.');
+                return false;
+            }
+
+            return true;
+        }
+
+        $(document).ready(function() {
+            // Re-initialize select2 here to ensure it's applied correctly
+            initializeSelect2();
+        });
+
+    </script>
+    
+    <style>
+        body { 
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+        }
+        .image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            object-fit: cover;
+        }
+        /* Select2 Custom Styles */
+        .select2-container--default .select2-selection--multiple,
+        .select2-container--default .select2-selection--single {
+            border-radius: 0.5rem;
+            border-color: #d1d5db;
+            min-height: 42px;
+            padding: 0.25rem;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #e5edff;
+            border: 1px solid #93c5fd;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            margin: 0.125rem;
+            color: #1e40af;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #1e40af;
+            margin-right: 0.25rem;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+            color: #991b1b;
+        }
+        .select2-dropdown {
+            border-radius: 0.5rem;
+            border-color: #d1d5db;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #2563eb;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border-radius: 0.375rem;
+            border-color: #d1d5db;
+            padding: 0.375rem;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+            outline: none;
+            border-color: #93c5fd;
+            ring: 2px;
+            ring-color: #3b82f6;
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        select[multiple] {
+            background-image: none;
+            padding-right: 0.75rem;
+        }
+        /* Custom Select2 Styles to match House Type dropdown */
+        .select2-container {
+            width: 100% !important;
+        }
+        .select2-container--default .select2-selection--multiple,
+        .select2-container--default .select2-selection--single {
+            min-height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            padding: 0.375rem 0.75rem;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--multiple {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            margin: 2px;
+            padding: 2px 8px;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            border-right: 1px solid #e5e7eb;
+            padding-right: 6px;
+            margin-right: 6px;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+        }
+        .select2-dropdown {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #3b82f6;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+            padding: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 antialiased">
+    <div class="flex min-h-screen">
+        {% include '_admin_sidebar.html' %}
+        <main class="flex-1 p-8">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-1">เพิ่มบ้านใหม่</h1>
+                    <div class="text-gray-500 text-base">สร้างบ้านใหม่</div>
+                </div>
+                <a href="{{ url_for('admin_houses') }}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-blue-200 transition duration-150 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    กลับหน้าจัดการบ้าน
+                </a>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                <form method="POST" action="{{ url_for('admin_add_house') }}" enctype="multipart/form-data" class="space-y-4" onsubmit="return validateForm()">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label for="h_title" class="block text-sm font-medium text-gray-700 mb-1">ชื่อบ้าน</label>
+                                <input type="text" id="h_title" name="h_title" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกชื่อบ้าน">
+                            </div>
+
+                            <div>
+                                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                                <textarea id="description" name="description" rows="4" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกคำอธิบายบ้าน"></textarea>
+                            </div>
+
+                            <div>
+                                <label for="price" class="block text-sm font-medium text-gray-700 mb-1">ราคา</label>
+                                <input type="number" id="price" name="price" required min="0" step="0.01"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกราคาบ้าน">
+                            </div>
+
+                            <div>
+                                <label for="t_id" class="block text-sm font-medium text-gray-700 mb-1">ประเภทบ้าน</label>
+                                <select id="t_id" name="t_id" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">เลือกประเภทบ้าน</option>
+                                    {% for type in house_types %}
+                                        <option value="{{ type.t_id }}">{{ type.t_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="f_id" class="block text-sm font-medium text-gray-700 mb-1">ลักษณะบ้าน</label>
+                                <select id="f_id" name="f_id" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">เลือกคุณลักษณะบ้าน</option>
+                                    {% for feature in house_features %}
+                                        <option value="{{ feature.f_id }}">{{ feature.f_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="bedrooms" class="block text-sm font-medium text-gray-700 mb-1">จำนวนห้องนอน</label>
+                                <input type="number" id="bedrooms" name="bedrooms" min="0"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกจำนวนห้องนอน">
+                            </div>
+
+                            <div>
+                                <label for="bathrooms" class="block text-sm font-medium text-gray-700 mb-1">จำนวนห้องน้ำ</label>
+                                <input type="number" id="bathrooms" name="bathrooms" min="0"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกจำนวนห้องน้ำ">
+                            </div>
+
+                            <div>
+                                <label for="living_area" class="block text-sm font-medium text-gray-700 mb-1">พื้นที่อาศัย</label>
+                                <input type="number" id="living_area" name="living_area" min="0" step="0.01"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกพื้นที่อาศัย">
+                            </div>
+
+                            <div>
+                                <label for="parking_space" class="block text-sm font-medium text-gray-700 mb-1">พื้นที่จอดรถ</label>
+                                <input type="number" id="parking_space" name="parking_space" min="0" step="0.01"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกพื้นที่จอดรถ">
+                            </div>
+
+                            <div>
+                                <label for="p_id" class="block text-sm font-medium text-gray-700 mb-1">โครงการ</label>
+                                <select id="p_id" name="p_id" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="">เลือกโครงการ</option>
+                                    {% for project in projects %}
+                                        <option value="{{ project.p_id }}">{{ project.p_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="latitude" class="block text-sm font-medium text-gray-700 mb-1">ละติจูด</label>
+                                <input type="number" id="latitude" name="latitude" step="any"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกละติจูด">
+                            </div>
+
+                            <div>
+                                <label for="longitude" class="block text-sm font-medium text-gray-700 mb-1">ลองจิจูด</label>
+                                <input type="number" id="longitude" name="longitude" step="any"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกลองจิจูด">
+                            </div>
+
+                            <div>
+                                <label for="no_of_floors" class="block text-sm font-medium text-gray-700 mb-1">จำนวนชั้น</label>
+                                <input type="number" id="no_of_floors" name="no_of_floors" min="0" step="1"
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="กรอกจำนวนชั้น">
+                            </div>
+
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
+                                <select id="status" name="status" required
+                                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="available" selected>พร้อมขาย</option>
+                                    <option value="inactive">ไม่พร้อมขาย</option>
+                                    <option value="sold">ขายแล้ว</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">เพิ่มรูปภาพ</label>
+                                <label for="house_images" class="border-2 border-dashed border-blue-500 rounded-xl bg-blue-50 p-8 flex flex-col items-center justify-center transition hover:shadow-xl hover:bg-blue-100 cursor-pointer">
+                                    <svg class="w-12 h-12 text-blue-500 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                    <span class="font-semibold text-blue-600">คลิกหรือลากรูปภาพที่นี่เพื่ออัปโหลด</span>
+                                    <span class="text-gray-500 text-sm">PNG, JPG, GIF ขนาดไม่เกิน 10MB คุณสามารถเลือกรูปภาพหลายๆ รูป</span>
+                                    <input type="file" id="house_images" name="house_images" multiple accept="image/*" class="hidden" onchange="previewMultipleImages(this)">
+                                </label>
+                                <div id="multipleImagePreview" class="flex flex-wrap gap-3 mt-4"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" id="submitButton" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                            สร้างบ้าน
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

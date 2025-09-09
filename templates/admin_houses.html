@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Houses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+        font-family: 'Kanit', sans-serif;
+        background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+    }
+        .sidebar-link-active {
+            background-color: #e0f2f7; /* Light blue */
+            color: #0284c7; /* Darker blue text */
+            font-weight: 600;
+         }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 antialiased">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        {% include '_admin_sidebar.html' %}
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-1">จัดการบ้าน</h1>
+                    <div class="text-gray-500 text-base">จัดการและจัดระเบียบบ้าน</div>
+                </div>
+                <a href="{{ url_for('admin_add_house') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    เพิ่มบ้าน
+                </a>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-200">
+                <form method="GET" action="{{ url_for('admin_houses') }}" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <!-- Search -->
+                        <div class="relative">
+                            <input type="text" name="search" placeholder="ค้นหาบ้านจัดสรร..." 
+                                class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value="{{ request.args.get('search', '') }}">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <!-- Type Filter -->
+                        <div>
+                            <select name="type" class="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">ประเภทบ้านทั้งหมด</option>
+                                {% for type in house_types %}
+                                    <option value="{{ type.t_id }}" {% if request.args.get('type') == type.t_id|string %}selected{% endif %}>{{ type.t_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Project Filter -->
+                        <div>
+                            <select name="project" class="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">จังหวัดทั้งหมด</option>
+                                {% for project in projects %}
+                                    <option value="{{ project.p_id }}" {% if request.args.get('project') == project.p_id|string %}selected{% endif %}>{{ project.p_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Sort Order -->
+                        <div>
+                            <select name="sort" class="w-full pl-3 pr-10 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="views_desc" {% if sort_order == 'views_desc' or not sort_order %}selected{% endif %}>จำนวนการเข้าชม (มากไปน้อย)</option>
+                                <option value="views_asc" {% if sort_order == 'views_asc' %}selected{% endif %}>จำนวนการเข้าชม (น้อยไปมาก)</option>
+                                <option value="name_asc" {% if sort_order == 'name_asc' %}selected{% endif %}>ชื่อบ้านจัดสรร (A-Z)</option>
+                                <option value="name_desc" {% if sort_order == 'name_desc' %}selected{% endif %}>ชื่อบ้านจัดสรร (Z-A)</option>
+                                <option value="type_asc" {% if sort_order == 'type_asc' %}selected{% endif %}>ประเภทบ้าน (A-Z)</option>
+                                <option value="type_desc" {% if sort_order == 'type_desc' %}selected{% endif %}>ประเภทบ้าน (Z-A)</option>
+                                <option value="project_asc" {% if sort_order == 'project_asc' %}selected{% endif %}>จังหวัดในโครงการ (A-Z)</option>
+                                <option value="project_desc" {% if sort_order == 'project_desc' %}selected{% endif %}>จังหวัดในโครงการ (Z-A)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+                            กรองข้อมูล
+                        </button>
+                        <a href="{{ url_for('admin_houses') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out">
+                            ล้างกรอง
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Houses Table -->
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">บ้าน</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภทบ้าน</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จังหวัดในโครงการ</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">จำนวนการเข้าชม</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for house in houses %}
+                            <tr class="hover:bg-gray-50 transition duration-150 ease-in-out">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        {% if house.main_image_url %}
+                                            <img src="{{ url_for('static', filename=house.main_image_url.replace('static/', '')) }}" alt="{{ house.name }}" class="w-10 h-10 rounded-lg object-cover mr-3">
+                                        {% else %}
+                                            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mr-3 text-gray-500">No Image</div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ house.name }}</div>
+                                            <div class="text-sm text-gray-500">{{ house.description }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ house.type_name }}</div>
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ house.project_name }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span class="inline-flex items-center justify-center px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        {{ house.view_count|default('0', true) }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if house.status == 'available' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Available
+                                    </span>
+                                    {% elif house.status == 'inactive' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-200 text-gray-700">
+                                        Inactive
+                                    </span>
+                                    {% elif house.status == 'sold' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Sold
+                                    </span>
+                                    {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700">
+                                        {{ house.status|capitalize }}
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a href="{{ url_for('admin_edit_house', id=house.id) }}" class="text-blue-600 hover:text-blue-900 mr-3 transition duration-150 ease-in-out">
+                                        <img src="/static/img/icons/edit.png" alt="Edit Icon" class="inline w-4 h-4 mr-1">
+                                        แก้ไข
+                                    </a>
+                                    
+                                    <form action="{{ url_for('admin_delete_house', id=house.id) }}" method="POST" class="inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" onclick="return confirm('Are you sure?')" class="text-red-600 hover:text-red-900">
+                                            <img src="/static/img/icons/delete.png" alt="Delete Icon" class="inline w-4 h-4 mr-1">
+                                            ลบ
+                                        </button>
+                                    </form>
+                                    
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html> 

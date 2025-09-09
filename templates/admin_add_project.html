@@ -1,0 +1,81 @@
+{% extends "_admin_layout.html" %}
+
+{% block title %}Add New Project{% endblock %}
+
+{% block content %}
+<style>
+    body { 
+        font-family: 'Kanit', sans-serif;
+        background: linear-gradient(135deg, #f6f8fc 0%, #f1f5f9 100%);
+    }
+</style>
+<main class="flex-1 p-8">
+    <!-- Top Bar -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-1">เพิ่มโครงการใหม่</h1>
+            <div class="text-gray-500 text-base">สร้างโครงการใหม่</div>
+        </div>
+        <a href="{{ url_for('admin_projects') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white-200 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            กลับหน้าจัดการโครงการ
+        </a>
+    </div>
+
+    <!-- Add Project Form -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+        <form method="POST" action="{{ url_for('admin_add_project') }}" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <!-- Project Name -->
+            <div>
+                <label for="p_name" class="block text-sm font-medium text-gray-700 mb-1">ชื่อโครงการ</label>
+                <input type="text" id="p_name" name="p_name" required
+                    class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
+                    placeholder="กรอกชื่อโครงการ">
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                <textarea id="description" name="description" rows="4"
+                    class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
+                    placeholder="กรอกคำอธิบายโครงการ"></textarea>
+            </div>
+
+            <!-- Address -->
+            <div>
+                <label for="address" class="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
+                <input type="text" id="address" name="address"
+                    class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"
+                    placeholder="กรอกที่อยู่โครงการ">
+            </div>
+            
+
+            <!-- Project Image -->  
+            <div>
+                <label for="p_image" class="block text-sm font-medium text-gray-700 mb-1">รูปภาพโครงการ</label>
+                <input type="file" id="p_image" name="p_image" accept="image/*"
+                    class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100 cursor-pointer transition-colors duration-200">
+                <div id="image-preview-container" class="mt-4 hidden">
+                    <img id="previewImage" class="max-h-48 rounded-lg shadow-md" alt="Image preview">
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="flex justify-end pt-4">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">
+                    สร้างโครงการ
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %} 
